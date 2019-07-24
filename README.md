@@ -1,2 +1,2 @@
 # Pac-Man
-A Pac-Man game written in pure C++.
+A snake game on console written in pure C++
