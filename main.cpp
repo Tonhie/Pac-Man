@@ -1,4 +1,4 @@
-//Writer: Coxe
+//Writer: Coxe (Cloud.Xavier)
 //Sponsors: One autumn leaf & The cat looking up at the starry sky
 //Product: Pac-Man (on the console)
 //Version: 1.0.0_base
