@@ -8,14 +8,17 @@
 #include "functions.h"
 #include "base_data.h"
 
-
 void Drawer() {
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), PacMan.Color);
 	SetPos(PacMan.X, PacMan.Y), _putch(Pic[PacMan.Direction]);
 	//Load the Pac-Man
 
 	for(int i  = 1; i < 5; i ++) {
-		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), Ghost[i].locked ^ -1 ? Ghost[i].Color : 8);
+		int temp = Ghost[i].Color;
+		if(Strong_Time && Ghost[i].locked == -1)
+			temp = Strong_Time <= 10 && (Strong_Time & 1) == 1 ? 7 : 8;
+		if(Ghost[i].locked > 0 && Ghost[i].locked % 2 == 1) temp = 0;
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), temp);
 		SetPos(Ghost[i].X, Ghost[i].Y), _putch('M');
 	}
 	//Load the Ghost
@@ -70,7 +73,7 @@ void Move_PacMan(void) {
 	//Scorer
 
 	if(Map[temp.X][temp.Y] == '@' ) {
-		Strong_Time = 20;
+		Strong_Time = 30;
 		//see the name
 
 		for(int i = 1; i < 5; i++)
@@ -94,26 +97,18 @@ void Move_PacMan(void) {
 	//Give the new coord to PacMan
 }
 
-bool Check_Obstacle(int x, int y, int d) {
-	while(x ^ PacMan.X || y ^ PacMan.Y) {
-		x += Move[d][0], y += Move[d][1];
-		if(Map[x][y] == '#') return false;
-	}
-	return true;
-}
-
 int Change_Direction(int x, int y, int d, int a) {
 	int temp = d;
 
-	if(x == PacMan.X) temp = PacMan.Y - y > 0 ? (!PacMan.locked ? 4 : 3) : (!PacMan.locked ? 3 : 4);
-	if(y == PacMan.Y) temp = PacMan.X - x > 0 ? (!PacMan.locked ? 2 : 1) : (!PacMan.locked ? 1 : 2);
-	if(temp ^ d && Check_Obstacle(x, y, temp)) return temp;
-	//The algorithm of grab (or Escape form) the Pac-Manaas
+	if(x == PacMan.X) temp = PacMan.Y - y > 0 ? (Ghost[a].locked ^ -1 ? 4 : 3) : (Ghost[a].locked ^ -1 ? 3 : 4);
+	if(y == PacMan.Y) temp = PacMan.X - x > 0 ? (Ghost[a].locked ^ -1 ? 2 : 1) : (Ghost[a].locked ^ -1 ? 1 : 2);
+	if(temp ^ d && Map[x + Move[temp][0]][y + Move[temp][1]] ^ '#') return temp;
+	// The algorithm of grab (or Escape form) the Pac-Manaas
 
-	if(!Turnings[x][y]) return d; //If it's not a turning, don't change the direction
+	if(!Turnings[x][y]) return d; // If it's not a turning, don't change the direction
 
 	d = d ^ 1 ? (d ^ 2 ? (d ^ 3 ? 3 : 4) : 1) : 2;
-	//Reverse process
+	// Reverse process
 
 	temp = (rand() & 3) + 1;
 	while(Map[x + Move[temp][0]][y + Move[temp][1]] == '#' || temp == d)
@@ -193,7 +188,7 @@ int main() {
 		bool temp = false;
 
 		for(int i = 1; i < 5; i++) {
-			if(timer_Ghost[i] == (Ghost[i].locked ? 700 : 500)) {
+			if(timer_Ghost[i] == (Ghost[i].locked ? 1000 : 500)) {
 				Move_Ghost(i); // Move the Ghost
 				
 				timer_Ghost[i] = 0; // Reset the timer of this ghost
