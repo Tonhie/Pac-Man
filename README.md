@@ -1,5 +1,5 @@
 # Pac-Man
-A snake game on console written in pure C++
+A Pac-Man game on console written in pure C++
 
 ## Related information
 + Writer: Coxe (CloudXavier)
