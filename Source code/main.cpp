@@ -8,8 +8,19 @@
 #include "functions.h"
 #include "base_data.h"
 
-void Drawer() {
+void Status_bar () {
+	SetPos(Height + 1, 1);
+	std::cout << "Lifes: ";
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), PacMan.Color);
+	for(int i = 1; i <= life; i++) _putch('>'), _putch(' ');
+	for(int i = 1; i <= 3 - life; i++) _putch(' '), _putch(' ');
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+	std::cout << "Score: " << Score << " Level: " << level << "      ";
+	//Load the life and the Score
+}
+
+void Drawer() {
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (PacMan.locked & 1) ^ 1 ? PacMan.Color : 0);
 	SetPos(PacMan.X, PacMan.Y), _putch(Pic[PacMan.Direction]);
 	//Load the Pac-Man
 
@@ -31,13 +42,11 @@ void Framework() {
 	for(int i = 1; i <= Height; i++)
 		for(int j = 1; j <= Width; j++) {
 			_putch(Save_Map[i][j]);
-			if(i == Height && j == Width) continue;
-			_putch(j ^ Width ? ' ' : '\n');
+			if(i ^ Height || j ^ Width) _putch(j ^ Width ? ' ' : '\n');
 		}
 	//Load the map
 
-	SetPos(Height + 1, 1), std::cout << "Score: " << Score;
-	//Load the Score
+	Status_bar();
 
 	Drawer(); //Load the Ghost and the PacMan
 }
@@ -63,17 +72,22 @@ void Direction_Controller(char temp) {
 }
 
 void Move_PacMan(void) {
+	if(PacMan.locked) {
+		PacMan.locked--;
+		return;
+	}
+
 	COORD temp;
 	temp.X = PacMan.X + Move[PacMan.Direction][0];
 	temp.Y = PacMan.Y + Move[PacMan.Direction][1];
 	//Get the new coord
 
 	if(Map[temp.X][temp.Y] == '.')
-		SetPos(Height + 1, 1), std::cout << "Score: " << ++Score;
-	//Scorer
+		beans--, Score++, Status_bar();
+	//Load the life and the Score
 
 	if(Map[temp.X][temp.Y] == '@' ) {
-		Strong_Time = 30;
+		Strong_Time = 25;
 		//see the name
 
 		for(int i = 1; i < 5; i++)
@@ -147,28 +161,43 @@ void Move_Ghost(int a) {
 }
 
 bool check_alive(int x, int y) {
-	for(int i = 1; i < 5; i++)
-		if(x == Ghost[i].X && y == Ghost[i].Y) {
-			if(Ghost[i].locked > -1) return false; //If Pac-Man isn't strong, eat it
+	for(int i = 1; i < 5; i++) {
+		if(!beans || !life) return false;
 
-			Ghost[i].X = Save_Ghost[i].X;
-			Ghost[i].Y = Save_Ghost[i].Y;
-			Ghost[i].Direction = Save_Ghost[i].Direction;
-			Ghost[i].locked = 10;
-			//Reset this Ghost
+		if(x ^ Ghost[i].X || y ^ Ghost[i].Y) continue;
 
-			Score += 10;
-			SetPos(Height + 1, 1), std::cout << "Score: " << Score;
-		}
+		if(Ghost[i].locked > -1) {
+			life--; //See the name
+
+			Status_bar(); //See the name
+
+			if(life) {
+				for(int i = 1; i < 5; i++)
+					SetPos(Ghost[i].X, Ghost[i].Y), _putch(Map[Ghost[i].X][Ghost[i].Y]);
+				SetPos(PacMan.X, PacMan.Y), _putch(' ');
+			}
+			Data_Processing(false);
+			//Reset Ghost and the PacMan
+			
+			continue;
+		} //If was eatten
+
+		Ghost[i].X = Save_Ghost[i].X;
+		Ghost[i].Y = Save_Ghost[i].Y;
+		Ghost[i].Direction = Save_Ghost[i].Direction;
+		Ghost[i].locked = 10;
+		//Reset this Ghost
+
+		Score += 10;
+		Status_bar(); //See the name
+	}
 	return true;
 } //Check whether be catched by ghosts
 
-int main() {
-	Data_Processing(); //Process the data
+void Game(void) {
+	system("CLS");
 
-	Cursor_Status(false); //Hide the Cursor
-
-	Window_Size_Set(Width, Height + 1); //Resize the window
+	Data_Processing(true);
 
 	Framework(); //Load the map
 
@@ -210,6 +239,33 @@ int main() {
 		timer_PacMan += 25; //Waiting sum
 
 		Sleep(1); //Step interval
+	}
+
+	if(!beans) level++;
+
+	Status_bar();
+}
+
+int main(int argc, char const *argv[]) {
+
+	Cursor_Status(false); //Hide the Cursor
+
+	Window_Size_Set(Width, Height + 1); //Resize the window
+
+	while(true) {
+		system("CLS");
+
+		Load_Data(); //Process the data
+	
+		for(int i = 3; i > 0; i--)
+			SetPos(14, 11), std::cout << i, Sleep(1000);
+		SetPos(14, 11), std::cout << "GO!";
+		Sleep(1000);
+
+		while(life) Game();
+
+		MessageBox(NULL, TEXT("Game Over!"), TEXT("Tip"), MB_OK);
+		if(MessageBox(NULL, TEXT("Wether have another game?"), TEXT("Tip"), MB_YESNO) == IDNO) break;
 	}
 	_getch();
 }
