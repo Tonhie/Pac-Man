@@ -17,3 +17,7 @@ A Pac-Man game on console written in pure C++
 + There are three lifes you have!
 + When you eat all the beans on the field, pass!
 + Go and find more fun places! The ghosts are wait you! B-)
+
+## Game screenshot
++ Are you looking forward to it? There's a picture blow! o(*￣▽￣*)o
++ ![image] (https://github.com/CloudXavier/Pac-Man/blob/master/Image/Game%20screenshot.png)
