@@ -8,7 +8,7 @@
             "name": "g++.exe build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}\\Generated executable\\Pac-Man 1.0.0_base.exe",
+            "program": "${workspaceFolder}\\Generated executable\\Pac-Man 1.0.0_base.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
